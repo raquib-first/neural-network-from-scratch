@@ -134,14 +134,26 @@ accuracy: 95.71%
 
 ## Results
 
-| Version             | Compile Flag | Training Time | Test Accuracy |
-|---------------------|--------------|---------------|---------------|
-| Baseline            | default      | 21134s        | 95.71%        |
-| Optimized loop      | default      | TBD           | TBD           |
-| Compiler optimized  | `-O3`        | TBD           | TBD           |
-| With Dropout (0.2)  | `-O3`        | TBD           | TBD           |
+All experiments run for 3 epochs · 60,000 training samples · 10,000 test samples  
+Architecture: 784 → 128 → 64 → 10
 
-*3 epochs · 60,000 training samples · 10,000 test samples · Architecture: 784→128→64→10*
+| Version                        | Optimizer | Compile Flag | Training Time | Test Accuracy |
+|--------------------------------|-----------|--------------|---------------|---------------|
+| Baseline                       | Adam      | default      | 21134s        | 95.71%        |
+| Loop order optimization        | Adam      | default      |  7982s        | 95.84%        |
+| Compiler optimization          | Adam      | `-O3`        |   829s        | 96.40%        |
+| Loop + Compiler optimization   | Adam      | `-O3`        |   950s        | 96.65%        |
+| Dropout 0.2                    | Adam      | `-O3`        |  1244s        | 96.20%        |
+| SGD lr=0.01                    | SGD       | `-O3`        |   173s        | 96.31%        |
+
+**Key takeaways:**
+- `-O3` compiler flag alone gives **25x speedup** with zero code changes
+- Loop order optimization gives **2.6x speedup** from cache-friendly memory access
+- SGD with tuned learning rate is **5x faster than Adam** and competitive on accuracy
+- Adam is more robust — converges reliably without learning rate tuning
+- Dropout needs more than 3 epochs to show its benefit
+- Best accuracy: **96.65%**
+- Fastest training: **173s**
 
 ---
 
